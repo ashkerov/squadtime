@@ -38,6 +38,7 @@ export function Results() {
   const options = useMemo(() => findBestSlots(meeting, { notBefore: minute }), [meeting, minute]);
   const [fixing, setFixing] = useState<BestOption | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
   const tz = meeting.timezone;
   const total = meeting.participants.length;
   const responded = meeting.participants.filter(
@@ -55,107 +56,126 @@ export function Results() {
     });
 
   return (
-    <div className={p.stack}>
-      {meeting.final && (
-        <div className={p.callout}>
-          <div className={p.spread}>
-            <span>
-              <strong>Зафиксировано:</strong> {formatDayShort(dayInTz(meeting.final.start, tz))},{' '}
-              {timeInTz(meeting.final.start, tz)}
-            </span>
-            <ButtonLink to={`/m/${meeting.id}/final`} small variant="ghost">
-              Итог →
-            </ButtonLink>
-          </div>
-        </div>
-      )}
-
-      <section className={p.stack} aria-labelledby="top-title">
-        <h2 id="top-title" className={p.sectionTitle}>
-          Лучшее время
-        </h2>
-        {full.participants.length > 1 && (
-          <div className={s.whoCounts}>
-            <div className={s.people} role="group" aria-label="Кого учитываем">
-              {full.participants.map((x) => {
-                const on = !excluded.has(x.id);
-                return (
-                  <button
-                    key={x.id}
-                    type="button"
-                    className={`${s.person} ${on ? '' : s.personOff}`}
-                    aria-pressed={on}
-                    title={on ? `Посмотреть варианты без: ${x.name}` : `Снова учитывать: ${x.name}`}
-                    onClick={() => toggleExcluded(x.id)}
-                  >
-                    <Avatar name={x.name} size={24} />
-                    {x.name}
-                  </button>
-                );
-              })}
+    <div className={s.layout}>
+      <div className={s.topArea}>
+        {meeting.final && (
+          <div className={p.callout}>
+            <div className={p.spread}>
+              <span>
+                <strong>Зафиксировано:</strong> {formatDayShort(dayInTz(meeting.final.start, tz))},{' '}
+                {timeInTz(meeting.final.start, tz)}
+              </span>
+              <ButtonLink to={`/m/${meeting.id}/final`} small variant="ghost">
+                Итог →
+              </ButtonLink>
             </div>
-            <p className={p.muted}>
-              {excluded.size > 0 ? (
-                <>
-                  Без:{' '}
-                  {full.participants
-                    .filter((x) => excluded.has(x.id))
-                    .map((x) => x.name)
-                    .join(', ')}
-                  .{' '}
-                  <button
-                    type="button"
-                    className={s.linkBtn}
-                    onClick={() => setExcluded(new Set())}
-                  >
-                    Учитывать всех
-                  </button>
-                </>
-              ) : (
-                'Нажмите на имя — увидите, какие варианты появятся без этого человека.'
-              )}
-            </p>
           </div>
         )}
-        {responded.length === 0 ? (
-          <div className={s.emptyCard}>
-            <p>
-              Пока никто не отметился. Как только появятся отметки, здесь будут три лучших варианта.
-            </p>
-            <ButtonLink to={`/m/${meeting.id}`} variant="primary">
-              Отметиться
-            </ButtonLink>
-          </div>
-        ) : options.length === 0 ? (
-          <div className={s.emptyCard}>
-            <p>
-              Нет будущего интервала длиной {formatDuration(meeting.durationMin)}, где совпадают
-              отметки
-              {requiredBlocking.length > 0
-                ? ` обязательных участников (${requiredBlocking.map((x) => x.name).join(', ')})`
-                : ''}
-              . Попробуйте уменьшить длительность или расширить даты.
-            </p>
-            <ButtonLink to={`/m/${meeting.id}/edit`}>Изменить настройки</ButtonLink>
-          </div>
-        ) : (
-          <ol className={s.options}>
-            {options.map((o, i) => (
-              <OptionCard
-                key={o.start}
-                option={o}
-                rank={i}
-                tz={tz}
-                total={total}
-                names={(ids) => namesOf(meeting, ids)}
-                onPick={() => setFixing(o)}
-              />
-            ))}
-          </ol>
-        )}
-      </section>
 
-      <section className={p.stack} aria-labelledby="heat-title">
+        <section className={p.stack} aria-labelledby="top-title">
+          <h2 id="top-title" className={p.sectionTitle}>
+            Лучшее время
+          </h2>
+          {full.participants.length > 1 && (
+            <div className={s.whoCounts}>
+              <div className={s.people} role="group" aria-label="Кого учитываем">
+                {full.participants.map((x) => {
+                  const on = !excluded.has(x.id);
+                  return (
+                    <button
+                      key={x.id}
+                      type="button"
+                      className={`${s.person} ${on ? '' : s.personOff}`}
+                      aria-pressed={on}
+                      title={
+                        on ? `Посмотреть варианты без: ${x.name}` : `Снова учитывать: ${x.name}`
+                      }
+                      onClick={() => toggleExcluded(x.id)}
+                    >
+                      <Avatar name={x.name} size={24} />
+                      {x.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className={p.muted}>
+                {excluded.size > 0 ? (
+                  <>
+                    Без:{' '}
+                    {full.participants
+                      .filter((x) => excluded.has(x.id))
+                      .map((x) => x.name)
+                      .join(', ')}
+                    .{' '}
+                    <button
+                      type="button"
+                      className={s.linkBtn}
+                      onClick={() => setExcluded(new Set())}
+                    >
+                      Учитывать всех
+                    </button>
+                  </>
+                ) : (
+                  'Нажмите на имя — увидите, какие варианты появятся без этого человека.'
+                )}
+              </p>
+            </div>
+          )}
+          {responded.length === 0 ? (
+            <div className={s.emptyCard}>
+              <p>
+                Пока никто не отметился. Как только появятся отметки, здесь будут три лучших
+                варианта.
+              </p>
+              <ButtonLink to={`/m/${meeting.id}`} variant="primary">
+                Отметиться
+              </ButtonLink>
+            </div>
+          ) : options.length === 0 ? (
+            <div className={s.emptyCard}>
+              <p>
+                Нет будущего интервала длиной {formatDuration(meeting.durationMin)}, где совпадают
+                отметки
+                {requiredBlocking.length > 0
+                  ? ` обязательных участников (${requiredBlocking.map((x) => x.name).join(', ')})`
+                  : ''}
+                . Попробуйте уменьшить длительность или расширить даты.
+              </p>
+              <ButtonLink to={`/m/${meeting.id}/edit`}>Изменить настройки</ButtonLink>
+            </div>
+          ) : (
+            <ol className={s.options}>
+              {options.map((o, i) => (
+                <OptionCard
+                  key={o.start}
+                  option={o}
+                  rank={i}
+                  tz={tz}
+                  total={total}
+                  names={(ids) => namesOf(meeting, ids)}
+                  onPick={() => setFixing(o)}
+                />
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section
+          className={s.hoverPanel}
+          aria-live="polite"
+          aria-label="Кто может в выбранное время"
+        >
+          {hover ? (
+            <SlotDetails slotKey={hover} />
+          ) : (
+            <p className={p.muted}>
+              Наведите на ячейку тепловой карты — здесь появится, кто может.
+            </p>
+          )}
+        </section>
+      </div>
+
+      <section className={`${p.stack} ${s.heatArea}`} aria-labelledby="heat-title">
         <div className={p.spread}>
           <h2 id="heat-title" className={p.sectionTitle}>
             Тепловая карта
@@ -169,6 +189,7 @@ export function Results() {
           selectedKey={slot ?? undefined}
           onSelect={setSlot}
           nowMs={nowMs}
+          onHover={setHover}
         />
         <p className={p.muted}>
           Отметились {responded.length} из {total}. Нажмите на ячейку, чтобы увидеть, кто может.
@@ -255,6 +276,22 @@ function SlotSheet({ slotKey, onClose }: { slotKey: string | null; onClose: () =
         {null}
       </Sheet>
     );
+  const end = Date.parse(slotKey) + SLOT_MS;
+  return (
+    <Sheet
+      open
+      onClose={onClose}
+      title={`${formatDayShort(dayInTz(slotKey, tz))}, ${timeInTz(slotKey, tz)}–${timeInTz(end, tz)}`}
+    >
+      <SlotDetails slotKey={slotKey} withTitle={false} />
+    </Sheet>
+  );
+}
+
+/** Кто может / если нужно / не может в один слот — для шторки и боковой панели. */
+function SlotDetails({ slotKey, withTitle = true }: { slotKey: string; withTitle?: boolean }) {
+  const { meeting } = useMeetingContext();
+  const tz = meeting.timezone;
   const who = whoInSlot(meeting, slotKey);
   const end = Date.parse(slotKey) + SLOT_MS;
   const groups: { title: string; ids: Id[] }[] = [
@@ -265,11 +302,12 @@ function SlotSheet({ slotKey, onClose }: { slotKey: string | null; onClose: () =
   ];
   const n = who.yes.length + who.maybe.length;
   return (
-    <Sheet
-      open
-      onClose={onClose}
-      title={`${formatDayShort(dayInTz(slotKey, tz))}, ${timeInTz(slotKey, tz)}–${timeInTz(end, tz)}`}
-    >
+    <>
+      {withTitle && (
+        <p className={s.detailsTitle}>
+          {formatDayShort(dayInTz(slotKey, tz))}, {timeInTz(slotKey, tz)}–{timeInTz(end, tz)}
+        </p>
+      )}
       <p className={p.muted}>
         {n} {plural(n, ['человек', 'человека', 'человек'])} из {meeting.participants.length}
       </p>
@@ -290,6 +328,6 @@ function SlotSheet({ slotKey, onClose }: { slotKey: string | null; onClose: () =
             </div>
           ))}
       </div>
-    </Sheet>
+    </>
   );
 }

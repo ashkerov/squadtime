@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useMatch, useNavigate, useParams } from 'react-router-dom';
 import { MeetingMenu } from '../components/MeetingMenu';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { TopBar } from '../components/TopBar';
 import { deviceTimezone, formatDateRange } from '../domain/slots';
 import { useMeeting } from '../hooks/meetings';
@@ -22,12 +23,17 @@ export function MeetingLayout() {
   const tzNote = meeting.timezone !== deviceTimezone() ? ` · время: ${meeting.timezone}` : '';
 
   return (
-    <main className={p.page}>
+    <main className={`${p.page} ${p.wide}`}>
       <TopBar
         back="/"
         title={meeting.title}
         subtitle={`${formatDateRange(meeting.dates)}${tzNote}`}
-        actions={<MeetingMenu meeting={meeting} afterDelete={() => navigate('/')} />}
+        actions={
+          <>
+            <ThemeToggle />
+            <MeetingMenu meeting={meeting} afterDelete={() => navigate('/')} />
+          </>
+        }
       />
       <nav className={s.tabs} aria-label="Разделы встречи">
         <NavLink end to={`/m/${meeting.id}`} className={tabClass}>

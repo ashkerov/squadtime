@@ -6,8 +6,11 @@ import { showToast } from './components/toastBus';
 import { Toaster } from './components/Toaster';
 import { RepositoryProvider } from './hooks/repository';
 import { LocalStorageRepository } from './storage/LocalStorageRepository';
+import { applyTheme, loadTheme } from './storage/preferences';
 import './styles/tokens.css';
 import './styles/global.css';
+
+applyTheme(loadTheme()); // до первого рендера — без мигания темы
 
 // Единственная строка, которую нужно поменять при переходе на сервер:
 // const repository = new ApiRepository('/api');

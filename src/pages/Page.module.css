@@ -8,6 +8,18 @@
   flex-direction: column;
 }
 
+/* Широкая страница: на ноутбуке занимает почти весь экран */
+.wide {
+  max-width: var(--max-wide);
+}
+
+@media (min-width: 1024px) {
+  .wide {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
 .stack {
   display: flex;
   flex-direction: column;

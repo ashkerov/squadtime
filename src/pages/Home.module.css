@@ -119,3 +119,9 @@
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 12px;
+}

@@ -29,6 +29,7 @@
   --gap: 12px;
   --page-pad: 16px;
   --max-width: 720px;
+  --max-wide: 1280px;
   --tap: 44px;
 
   --cell-w: 56px;
@@ -38,8 +39,9 @@
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/* Тёмная тема: по системной настройке, если пользователь не выбрал тему вручную */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0e0e13;
     --surface: #1a1a22;
     --surface-2: #25252f;
@@ -54,6 +56,28 @@
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 28px rgb(0 0 0 / 0.35);
     --focus: #b4adff;
   }
+}
+
+/* Ручной выбор темы (кнопка на главной) */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0e0e13;
+  --surface: #1a1a22;
+  --surface-2: #25252f;
+  --text: #f0f0f5;
+  --text-muted: #a5a5b4;
+  --accent: #8f85ff;
+  --accent-contrast: #11111a;
+  --border: #30303c;
+  --danger: #ff6b7d;
+  --success: #4cc985;
+  --backdrop: rgb(0 0 0 / 0.6);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 28px rgb(0 0 0 / 0.35);
+  --focus: #b4adff;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 @media (prefers-reduced-motion: reduce) {

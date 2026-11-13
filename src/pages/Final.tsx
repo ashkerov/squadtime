@@ -111,61 +111,65 @@ export function Final() {
   };
 
   return (
-    <div className={p.stack}>
+    <div className={s.layout}>
       {celebrate && <Confetti />}
-      <section className={s.hero} aria-label="Итог встречи">
-        <p className={s.kicker}>
-          Встреча зафиксирована
-          {when && <span className={s.when}>{when}</span>}
-        </p>
-        <p className={s.date}>{capitalize(formatDayLong(info.date))}</p>
-        <p className={s.time}>{info.timeRange}</p>
-        {info.place ? (
-          <p className={s.place}>
-            📍 {info.place.name}
-            {info.place.address && <span className={s.address}>{info.place.address}</span>}
+      <div className={s.mainCol}>
+        <section className={s.hero} aria-label="Итог встречи">
+          <p className={s.kicker}>
+            Встреча зафиксирована
+            {when && <span className={s.when}>{when}</span>}
           </p>
-        ) : (
-          <p className={s.address}>Место не выбрано</p>
-        )}
-      </section>
+          <p className={s.date}>{capitalize(formatDayLong(info.date))}</p>
+          <p className={s.time}>{info.timeRange}</p>
+          {info.place ? (
+            <p className={s.place}>
+              📍 {info.place.name}
+              {info.place.address && <span className={s.address}>{info.place.address}</span>}
+            </p>
+          ) : (
+            <p className={s.address}>Место не выбрано</p>
+          )}
+        </section>
 
-      <div className={s.actions}>
-        {canShare && (
-          <Button variant="primary" onClick={() => void share()} className={s.wide}>
-            Поделиться с друзьями
+        <div className={s.actions}>
+          {canShare && (
+            <Button variant="primary" onClick={() => void share()} className={s.wide}>
+              Поделиться с друзьями
+            </Button>
+          )}
+          <Button variant={canShare ? 'secondary' : 'primary'} onClick={downloadIcs}>
+            Скачать .ics
           </Button>
-        )}
-        <Button variant={canShare ? 'secondary' : 'primary'} onClick={downloadIcs}>
-          Скачать .ics
-        </Button>
-        <ExternalButton href={googleCalendarUrl(meeting)}>В Google Календарь</ExternalButton>
-        <Button onClick={() => void copy()}>Скопировать текст для чата</Button>
-        {link ? (
-          <ExternalButton href={link}>Открыть на карте</ExternalButton>
-        ) : (
-          <ButtonLink to={`/m/${meeting.id}/places`}>Выбрать место</ButtonLink>
-        )}
+          <ExternalButton href={googleCalendarUrl(meeting)}>В Google Календарь</ExternalButton>
+          <Button onClick={() => void copy()}>Скопировать текст для чата</Button>
+          {link ? (
+            <ExternalButton href={link}>Открыть на карте</ExternalButton>
+          ) : (
+            <ButtonLink to={`/m/${meeting.id}/places`}>Выбрать место</ButtonLink>
+          )}
+        </div>
       </div>
 
-      <section className={p.stack} aria-labelledby="rsvp-title">
-        <h2 id="rsvp-title" className={p.sectionTitle}>
-          Кто идёт · {info.going.length} из {meeting.participants.length}
-        </h2>
-        <ul className={s.people}>
-          {meeting.participants.map((x) => (
-            <RsvpRow key={x.id} meeting={meeting} participant={x} />
-          ))}
-        </ul>
-        <p className={p.muted}>
-          По умолчанию «идёт» — тот, у кого это время отмечено. Можно поправить вручную.
-        </p>
-      </section>
+      <div className={s.sideCol}>
+        <section className={p.stack} aria-labelledby="rsvp-title">
+          <h2 id="rsvp-title" className={p.sectionTitle}>
+            Кто идёт · {info.going.length} из {meeting.participants.length}
+          </h2>
+          <ul className={s.people}>
+            {meeting.participants.map((x) => (
+              <RsvpRow key={x.id} meeting={meeting} participant={x} />
+            ))}
+          </ul>
+          <p className={p.muted}>
+            По умолчанию «идёт» — тот, у кого это время отмечено. Можно поправить вручную.
+          </p>
+        </section>
 
-      <div className={s.danger}>
-        <Button variant="danger" onClick={cancel} disabled={unfix.isPending}>
-          Отменить фиксацию
-        </Button>
+        <div className={s.danger}>
+          <Button variant="danger" onClick={cancel} disabled={unfix.isPending}>
+            Отменить фиксацию
+          </Button>
+        </div>
       </div>
     </div>
   );

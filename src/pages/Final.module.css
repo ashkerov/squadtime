@@ -144,3 +144,37 @@
     grid-column: 1 / -1;
   }
 }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+
+.mainCol,
+.sideCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    column-gap: 32px;
+    align-items: start;
+  }
+
+  .hero {
+    padding: 40px 32px;
+  }
+
+  .time {
+    font-size: 56px;
+  }
+
+  .danger {
+    justify-content: flex-start;
+  }
+}

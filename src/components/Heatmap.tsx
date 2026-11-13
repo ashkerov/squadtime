@@ -16,6 +16,7 @@ export function Heatmap({
   selectedKey,
   onSelect,
   nowMs,
+  onHover,
 }: {
   grid: Grid;
   meeting: Meeting;
@@ -23,6 +24,8 @@ export function Heatmap({
   selectedKey?: string;
   onSelect: (key: string) => void;
   nowMs?: number;
+  /** Наведение мышью / фокус на ячейке (null — ушли с сетки). */
+  onHover?: (key: string | null) => void;
 }) {
   const total = meeting.participants.length;
 
@@ -50,6 +53,7 @@ export function Heatmap({
     <GridFrame
       grid={grid}
       label="Тепловая карта: насколько удобно время всем участникам"
+      tableProps={onHover ? { onMouseLeave: () => onHover(null) } : undefined}
       renderCell={(d, r) => {
         const cell = grid.days[d].cells[r];
         if (!cell) {
@@ -81,6 +85,8 @@ export function Heatmap({
             role="gridcell"
             className={cls}
             onClick={() => onSelect(cell.key)}
+            onMouseEnter={onHover ? () => onHover(cell.key) : undefined}
+            onFocus={onHover ? () => onHover(cell.key) : undefined}
             aria-label={`${formatDayShort(cell.date)}, ${formatMinutes(cell.minute)}: могут ${c.yes}, если нужно ${c.maybe} из ${total}`}
           >
             {n > 0 && <span>{n}</span>}

@@ -1,0 +1,16 @@
+.btn {
+  width: var(--tap);
+  height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}

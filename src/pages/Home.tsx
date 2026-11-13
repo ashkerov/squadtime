@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AvatarStack } from '../components/Avatar';
 import { ImportButton } from '../components/ImportButton';
 import { MeetingMenu } from '../components/MeetingMenu';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { TopBar } from '../components/TopBar';
 import { Badge, Button, ButtonLink } from '../components/ui';
 import { getFinalInfo, whenLabel } from '../domain/final';
@@ -32,14 +33,19 @@ export function Home() {
     demo.mutate(undefined, { onSuccess: (m) => navigate(`/m/${m.id}/results`) });
 
   return (
-    <main className={p.page}>
+    <main className={`${p.page} ${p.wide}`}>
       <TopBar
         title={
           <span className={s.logo}>
             <LogoMark /> SquadTime
           </span>
         }
-        actions={<ImportButton variant="ghost" />}
+        actions={
+          <>
+            <ThemeToggle />
+            <ImportButton variant="ghost" />
+          </>
+        }
       />
 
       {isLoading ? null : meetings.length === 0 ? (
@@ -69,17 +75,21 @@ export function Home() {
           {active.length > 0 && (
             <section className={p.stack} aria-label="Активные встречи">
               <h2 className={p.sectionTitle}>Активные</h2>
-              {active.map((m) => (
-                <MeetingCard key={m.id} meeting={m} now={now} />
-              ))}
+              <div className={s.cards}>
+                {active.map((m) => (
+                  <MeetingCard key={m.id} meeting={m} now={now} />
+                ))}
+              </div>
             </section>
           )}
           {past.length > 0 && (
             <section className={p.stack} aria-label="Прошедшие встречи">
               <h2 className={p.sectionTitle}>Прошедшие</h2>
-              {past.map((m) => (
-                <MeetingCard key={m.id} meeting={m} now={now} />
-              ))}
+              <div className={s.cards}>
+                {past.map((m) => (
+                  <MeetingCard key={m.id} meeting={m} now={now} />
+                ))}
+              </div>
             </section>
           )}
           <div className={s.footer}>
