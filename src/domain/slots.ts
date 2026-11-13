@@ -89,6 +89,13 @@ export function addDays(date: string, n: number): string {
   return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
 }
 
+/** Число дней от a до b (YYYY-MM-DD). */
+export function daysBetween(a: string, b: string): number {
+  const [y1, m1, d1] = parseDay(a);
+  const [y2, m2, d2] = parseDay(b);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86_400_000);
+}
+
 /** 0 — воскресенье … 6 — суббота. */
 export function weekday(date: string): number {
   const [y, m, d] = parseDay(date);

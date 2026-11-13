@@ -97,3 +97,25 @@
   flex-direction: column;
   gap: 16px;
 }
+
+.spinning {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.winner {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent);
+  animation: win 400ms var(--ease);
+}
+
+.dice {
+  display: flex;
+  justify-content: center;
+}
+
+@keyframes win {
+  50% {
+    transform: scale(1.03);
+  }
+}

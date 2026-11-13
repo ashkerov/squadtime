@@ -45,7 +45,7 @@ export function Calendar({
           className={s.nav}
           onClick={() => shift(-1)}
           aria-label="Предыдущий месяц"
-          disabled={month <= today.slice(0, 7)}
+          disabled={month <= (first < today ? first : today).slice(0, 7)}
         >
           ‹
         </button>

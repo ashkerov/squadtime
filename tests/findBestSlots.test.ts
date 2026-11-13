@@ -326,3 +326,20 @@ describe('findBestSlots — 5 подготовленных наборов (ру�
     expect(res.every((o) => o.date === D2)).toBe(true);
   });
 });
+
+describe('findBestSlots — прошедшее время', () => {
+  it('не предлагает окна, которые уже начались', () => {
+    const m = makeMeeting({
+      participants: [person('a'), person('b')],
+      availability: {
+        a: { ...range(D1, '10:00', '14:00'), ...range(D2, '18:00', '20:00') },
+        b: { ...range(D1, '10:00', '14:00'), ...range(D2, '18:00', '20:00') },
+      },
+    });
+    const notBefore = Date.parse(key(D1, '11:00'));
+    const res = findBestSlots(m, { notBefore });
+    expect(t(res[0].start)).toBe('11:00');
+    expect(t(res[0].latestStart)).toBe('12:00');
+    expect(findBestSlots(m, { notBefore: Date.parse(key(D2, '19:00')) })).toEqual([]);
+  });
+});

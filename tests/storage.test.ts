@@ -144,3 +144,47 @@ describe('LocalStorageRepository', () => {
     expect((await other.importMeeting(json)).isNew).toBe(true);
   });
 });
+
+describe('LocalStorageRepository — частичная порча и повтор встречи', () => {
+  it('спасает уцелевшие встречи, если повреждена только одна', async () => {
+    const storage = new MemoryStorage();
+    const repo = new LocalStorageRepository(storage);
+    const good = await repo.create(input);
+    repo.flush();
+    const data = JSON.parse(storage.getItem(STORAGE_KEY)!);
+    data.meetings.push({ id: 'bad', title: '' });
+    storage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+    const reloaded = new LocalStorageRepository(storage);
+    expect((await reloaded.list()).map((m) => m.id)).toEqual([good.id]);
+    expect(reloaded.takeLoadWarning()).toMatch(/1 встреча пропущена/);
+  });
+
+  it('слишком длинное название места обрезается, данные остаются валидными', async () => {
+    const storage = new MemoryStorage();
+    const repo = new LocalStorageRepository(storage);
+    const m = await repo.create(input);
+    await repo.addPlace(m.id, { name: 'Б'.repeat(300), addedBy: m.participants[0].id });
+    repo.flush();
+    const reloaded = new LocalStorageRepository(storage);
+    expect(reloaded.takeLoadWarning()).toBeUndefined();
+    expect((await reloaded.get(m.id))!.places[0].name).toHaveLength(80);
+  });
+
+  it('повтор встречи: те же люди и места, даты на неделю вперёд, без отметок', async () => {
+    const repo = new LocalStorageRepository(new MemoryStorage(), {
+      now: () => new Date('2026-11-13T10:00:00.000Z'),
+    });
+    const m = await repo.create(input); // 14–15 ноября
+    await repo.setAvailability(m.id, m.participants[0].id, { '2026-11-14T15:00:00.000Z': 'yes' });
+    await repo.addPlace(m.id, { name: 'Кино', addedBy: m.participants[1].id });
+    const copy = await repo.duplicate(m.id);
+    expect(copy.id).not.toBe(m.id);
+    expect(copy.dates).toEqual(['2026-11-21', '2026-11-22']);
+    expect(copy.participants.map((p) => p.name)).toEqual(['Аня', 'Макс']);
+    expect(copy.availability).toEqual({});
+    expect(copy.places[0].votes).toEqual([]);
+    expect(copy.places[0].addedBy).toBe(copy.participants[1].id);
+    expect(await repo.getActiveParticipant(copy.id)).toBe(copy.participants[0].id);
+  });
+});

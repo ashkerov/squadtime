@@ -1,6 +1,6 @@
 import { statusForInterval } from './findBestSlots';
 import type { Id, Meeting, Participant, Place } from './schemas';
-import { dayInTz, formatDayLong, timeInTz } from './slots';
+import { dayInTz, daysBetween, formatDayLong, plural, timeInTz, todayIn } from './slots';
 
 /** Итог встречи: кто идёт, текст для чата, ссылка на карту. */
 
@@ -58,6 +58,25 @@ export function getFinalInfo(meeting: Meeting): FinalInfo | undefined {
     notGoing,
     unknown,
   };
+}
+
+/** «Завтра», «Через 3 дня», «Сегодня, через 2 часа», «Идёт прямо сейчас». */
+export function whenLabel(meeting: Meeting, now: Date = new Date()): string | undefined {
+  if (!meeting.final) return undefined;
+  const start = Date.parse(meeting.final.start);
+  const end = Date.parse(finalEnd(meeting, meeting.final.start));
+  const t = now.getTime();
+  if (t >= end) return 'Встреча прошла';
+  if (t >= start) return 'Идёт прямо сейчас';
+  const days = daysBetween(todayIn(meeting.timezone, now), dayInTz(start, meeting.timezone));
+  if (days === 0) {
+    const hours = Math.ceil((start - t) / 3_600_000);
+    if (hours <= 1) return 'Меньше чем через час';
+    return `Сегодня, через ${hours} ${plural(hours, ['час', 'часа', 'часов'])}`;
+  }
+  if (days === 1) return 'Завтра';
+  if (days === 2) return 'Послезавтра';
+  return `Через ${days} ${plural(days, ['день', 'дня', 'дней'])}`;
 }
 
 export function mapLink(place: Place | undefined): string | undefined {

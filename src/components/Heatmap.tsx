@@ -15,12 +15,14 @@ export function Heatmap({
   best,
   selectedKey,
   onSelect,
+  nowMs,
 }: {
   grid: Grid;
   meeting: Meeting;
   best?: BestOption;
   selectedKey?: string;
   onSelect: (key: string) => void;
+  nowMs?: number;
 }) {
   const total = meeting.participants.length;
 
@@ -68,6 +70,7 @@ export function Heatmap({
           bestTop && s.bestTop,
           bestBottom && s.bestBottom,
           selectedKey === cell.key && s.selected,
+          nowMs !== undefined && cell.ms + SLOT_MS <= nowMs && s.past,
         ]
           .filter(Boolean)
           .join(' ');

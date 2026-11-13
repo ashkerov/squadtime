@@ -1,8 +1,11 @@
 import {
+  MAX_ADDRESS_LENGTH,
   MAX_DAYS,
   MAX_NAME_LENGTH,
   MAX_PARTICIPANTS,
+  MAX_PLACE_NAME_LENGTH,
   MAX_TITLE_LENGTH,
+  MAX_URL_LENGTH,
   type Id,
   type Meeting,
   type MeetingSettings,
@@ -12,7 +15,7 @@ import {
   type SlotStatus,
 } from './schemas';
 import { finalEnd } from './final';
-import { addDays, todayIn } from './slots';
+import { addDays, daysBetween, todayIn } from './slots';
 
 /**
  * Чистые операции над встречей. Хранилище (сейчас localStorage, потом сервер)
@@ -248,9 +251,13 @@ export function addPlace(
   now = new Date(),
   idGen: IdGen = defaultIdGen,
 ): { meeting: Meeting; place: Place } {
-  const name = input.name.trim();
+  // Длины ограничиваем здесь же, как в схеме: иначе при следующей загрузке данные не пройдут проверку.
+  const name = input.name.trim().slice(0, MAX_PLACE_NAME_LENGTH);
   if (!name) throw new DomainError('Введите название места');
+  if (!m.participants.some((p) => p.id === input.addedBy))
+    throw new DomainError('Сначала выберите, кто вы');
   const mapUrl = input.mapUrl?.trim() || undefined;
+  if (mapUrl && mapUrl.length > MAX_URL_LENGTH) throw new DomainError('Слишком длинная ссылка');
   if (mapUrl) {
     let ok: boolean;
     try {
@@ -266,7 +273,7 @@ export function addPlace(
     addedBy: input.addedBy,
     votes: [input.addedBy],
   };
-  const address = input.address?.trim();
+  const address = input.address?.trim().slice(0, MAX_ADDRESS_LENGTH);
   if (address) place.address = address;
   if (mapUrl) place.mapUrl = mapUrl;
   return { meeting: touch({ ...m, places: [...m.places, place] }, now), place };
@@ -327,6 +334,48 @@ export function unfixMeeting(m: Meeting, now = new Date()) {
   const next = { ...touch(m, now), settingsUpdatedAt: now.toISOString() };
   delete next.final;
   return next;
+}
+
+/**
+ * «Повторить встречу»: та же компания, те же места и настройки, но новые даты —
+ * сдвиг на целое число недель вперёд, чтобы дни недели совпали (пятница остаётся пятницей).
+ * Отметки, лайки и фиксация не копируются.
+ */
+export function duplicateMeeting(
+  m: Meeting,
+  today: string,
+  now = new Date(),
+  idGen: IdGen = defaultIdGen,
+): Meeting {
+  const dates = [...m.dates].sort();
+  const daysBehind = daysBetween(dates[0], today);
+  const weeks = Math.max(1, Math.ceil(daysBehind / 7));
+  const ts = now.toISOString();
+  const idMap = new Map(m.participants.map((p) => [p.id, idGen()]));
+  const participants = m.participants.map((p) => ({
+    id: idMap.get(p.id)!,
+    name: p.name,
+    isRequired: p.isRequired,
+    updatedAt: ts,
+  }));
+  return {
+    id: idGen(),
+    title: m.title,
+    timezone: m.timezone,
+    dates: dates.map((d) => addDays(d, weeks * 7)),
+    dayStartMin: m.dayStartMin,
+    dayEndMin: m.dayEndMin,
+    durationMin: m.durationMin,
+    participants,
+    availability: {},
+    places: m.places.map((pl) => {
+      const author = idMap.get(pl.addedBy) ?? participants[0]?.id ?? pl.addedBy;
+      return { ...pl, id: idGen(), addedBy: author, votes: [] };
+    }),
+    createdAt: ts,
+    updatedAt: ts,
+    settingsUpdatedAt: ts,
+  };
 }
 
 export type MeetingStatus = 'collecting' | 'fixed' | 'past';

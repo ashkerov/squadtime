@@ -63,7 +63,17 @@ interface Window {
   score: number;
 }
 
-export function findBestSlots(meeting: BestSlotsInput, limit = 3): BestOption[] {
+export interface FindOptions {
+  /** Сколько вариантов вернуть (по умолчанию 3). */
+  limit?: number;
+  /** Не предлагать окна, которые начинаются раньше этого момента (мс) — прошедшее время. */
+  notBefore?: number;
+}
+
+export function findBestSlots(
+  meeting: BestSlotsInput,
+  { limit = 3, notBefore }: FindOptions = {},
+): BestOption[] {
   const k = Math.max(1, Math.ceil(meeting.durationMin / SLOT_MIN));
   const durationMs = meeting.durationMin * 60_000;
   const grid = buildGrid(meeting);
@@ -82,6 +92,7 @@ export function findBestSlots(meeting: BestSlotsInput, limit = 3): BestOption[] 
     for (let i = 0; i + k <= slots.length; i++) {
       const win = slots.slice(i, i + k);
       if (win[k - 1].ms - win[0].ms !== (k - 1) * SLOT_MS) continue; // разрыв из-за перевода часов
+      if (notBefore !== undefined && win[0].ms < notBefore) continue; // уже прошло
 
       const yes: Id[] = [];
       const maybe: Id[] = [];

@@ -67,6 +67,9 @@ export interface MeetingRepository {
   previewImport(json: string): Promise<ImportSummary>;
   importMeeting(json: string): Promise<ImportSummary>;
 
+  /** «Повторить встречу»: та же компания и места, даты на неделю(и) вперёд. */
+  duplicate(id: Id): Promise<Meeting>;
+
   // Демо
   createDemo(): Promise<Meeting>;
 

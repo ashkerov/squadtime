@@ -5,6 +5,7 @@ import {
   applySettings,
   createMeeting,
   DomainError,
+  duplicateMeeting,
   fixMeeting,
   removeParticipant,
   removePlace,
@@ -32,7 +33,7 @@ import {
   type Participant,
   type SlotStatus,
 } from '../domain/schemas';
-import { deviceTimezone } from '../domain/slots';
+import { deviceTimezone, plural, todayIn } from '../domain/slots';
 import { migrate } from './migrations';
 import {
   NotFoundError,
@@ -52,6 +53,26 @@ export interface LocalRepoOptions {
   win?: Pick<Window, 'addEventListener'>;
   now?: () => Date;
   writeDelayMs?: number;
+}
+
+/** Из частично повреждённых данных достаём встречи, которые проходят проверку. */
+function salvage(
+  json: unknown,
+): { meetings: Meeting[]; active: Record<string, string>; lost: number } | null {
+  if (typeof json !== 'object' || json === null) return null;
+  const list = (json as { meetings?: unknown }).meetings;
+  if (!Array.isArray(list)) return null;
+  const meetings: Meeting[] = [];
+  for (const item of list) {
+    const r = MeetingSchema.safeParse(item);
+    if (r.success) meetings.push(r.data);
+  }
+  const rawActive = (json as { activeParticipant?: unknown }).activeParticipant;
+  const active: Record<string, string> = {};
+  if (rawActive && typeof rawActive === 'object') {
+    for (const [k, v] of Object.entries(rawActive)) if (typeof v === 'string') active[k] = v;
+  }
+  return { meetings, active, lost: list.length - meetings.length };
 }
 
 const emptyData = (): AppData => ({ version: 1, meetings: [], activeParticipant: {} });
@@ -94,21 +115,44 @@ export class LocalStorageRepository implements MeetingRepository {
       return emptyData();
     }
     if (raw === null) return emptyData();
+    let json: unknown;
     try {
-      const parsed = AppDataSchema.parse(migrate(JSON.parse(raw)));
-      return parsed;
+      json = migrate(JSON.parse(raw));
+      return AppDataSchema.parse(json);
     } catch (err) {
-      const backupKey = `${BROKEN_PREFIX}${this.now().toISOString()}`;
+      // Пытаемся спасти уцелевшие встречи, если повреждена только часть данных.
+      const salvaged = salvage(json);
+      if (salvaged && salvaged.meetings.length > 0) {
+        const backupKey = this.backup(raw);
+        const lostText =
+          salvaged.lost > 0
+            ? `${salvaged.lost} ${plural(salvaged.lost, ['встреча пропущена', 'встречи пропущены', 'встреч пропущено'])}, остальные на месте`
+            : 'все встречи на месте';
+        this.warning = `Часть данных была повреждена: ${lostText}. Копия сохранена в «${backupKey}».`;
+        console.error('Данные повреждены частично', err);
+        return { version: 1, meetings: salvaged.meetings, activeParticipant: salvaged.active };
+      }
+      const backupKey = this.backup(raw);
       try {
-        this.storage.setItem(backupKey, raw);
         this.storage.removeItem(STORAGE_KEY);
       } catch {
-        // нет места для копии — всё равно начинаем с чистого листа
+        /* ignore */
       }
       this.warning = `Сохранённые данные повреждены, поэтому начали с чистого листа. Копия сохранена в «${backupKey}».`;
       console.error('Не удалось прочитать данные', err);
       return emptyData();
     }
+  }
+
+  /** Сохранить копию повреждённых данных, чтобы их можно было восстановить вручную. */
+  private backup(raw: string): string {
+    const backupKey = `${BROKEN_PREFIX}${this.now().toISOString()}`;
+    try {
+      this.storage.setItem(backupKey, raw);
+    } catch {
+      // нет места для копии — всё равно продолжаем
+    }
+    return backupKey;
   }
 
   private schedule() {
@@ -298,6 +342,15 @@ export class LocalStorageRepository implements MeetingRepository {
     const { meeting, summary } = this.plan(json);
     if (!summary.isNoop) this.put(meeting);
     return summary;
+  }
+
+  async duplicate(id: Id) {
+    const source = this.find(id);
+    const copy = duplicateMeeting(source, todayIn(source.timezone, this.now()), this.now());
+    this.put(copy);
+    const firstId = copy.participants[0]?.id;
+    if (firstId) this.data.activeParticipant[copy.id] = firstId;
+    return clone(copy);
   }
 
   async createDemo() {

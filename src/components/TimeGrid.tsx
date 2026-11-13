@@ -6,8 +6,9 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
+import { isPastSlot } from '../domain/marks';
 import type { SlotStatus } from '../domain/schemas';
-import { formatDayShort, formatMinutes, type Grid } from '../domain/slots';
+import { formatDayShort, formatMinutes, type Grid, type Slot } from '../domain/slots';
 import { GridFrame } from './GridFrame';
 import s from './Grid.module.css';
 
@@ -45,6 +46,8 @@ export function TimeGrid({
   onChange,
   disabled,
   overlay,
+  nowMs,
+  hints,
 }: {
   grid: Grid;
   value: Marks;
@@ -52,6 +55,10 @@ export function TimeGrid({
   onChange: (next: Marks) => void;
   disabled?: boolean;
   overlay?: ReactNode;
+  /** Слоты, закончившиеся раньше этого момента, отмечать нельзя. */
+  nowMs?: number;
+  /** Сколько других участников отметили слот — подсказка, куда «подтянуться». */
+  hints?: Record<string, number>;
 }) {
   const [draft, setDraft] = useState<Marks | null>(null);
   const [focus, setFocus] = useState<Pos>({ d: 0, r: 0 });
@@ -87,13 +94,14 @@ export function TimeGrid({
   }, [value]);
 
   const shown = draft ?? value;
+  const past = (cell: { ms: number }) => nowMs !== undefined && isPastSlot(cell, nowMs);
 
   const applyRect = (a: Pos, b: Pos, paint: SlotStatus | null): Marks => {
     const next = { ...latest.current };
     for (let d = Math.min(a.d, b.d); d <= Math.max(a.d, b.d); d++) {
       for (let r = Math.min(a.r, b.r); r <= Math.max(a.r, b.r); r++) {
         const cell = grid.days[d]?.cells[r];
-        if (!cell) continue;
+        if (!cell || past(cell)) continue;
         if (paint) next[cell.key] = paint;
         else delete next[cell.key];
       }
@@ -205,7 +213,7 @@ export function TimeGrid({
 
   const toggleOne = (pos: Pos) => {
     const cell = grid.days[pos.d]?.cells[pos.r];
-    if (!cell || disabled) return;
+    if (!cell || disabled || past(cell)) return;
     const next = { ...latest.current };
     if (next[cell.key] === mode) delete next[cell.key];
     else next[cell.key] = mode;
@@ -236,7 +244,8 @@ export function TimeGrid({
 
   const toggleDay = (d: number) => {
     if (disabled) return;
-    const cells = grid.days[d].cells.filter((c) => c !== null);
+    const cells = grid.days[d].cells.filter((c): c is Slot => c !== null && !past(c));
+    if (cells.length === 0) return;
     const allSet = cells.every((c) => latest.current[c.key] === mode);
     const next = { ...latest.current };
     for (const c of cells) {
@@ -259,6 +268,7 @@ export function TimeGrid({
         onPointerMove,
         onPointerUp: (e) => endPointer(e, false),
         onPointerCancel: (e) => endPointer(e, true),
+        onLostPointerCapture: (e) => endPointer(e, false),
         onKeyDown,
         onContextMenu: (e) => e.preventDefault(),
       }}
@@ -280,18 +290,27 @@ export function TimeGrid({
           );
         }
         const st = shown[cell.key];
+        const isPast = past(cell);
+        const others = hints?.[cell.key] ?? 0;
         return (
           <div
             key={d}
             role="gridcell"
-            className={`${s.cell} ${s.markCell} ${st ? s[st] : ''}`}
+            className={`${s.cell} ${s.markCell} ${st ? s[st] : ''} ${isPast ? s.past : ''}`}
             data-d={d}
             data-r={r}
             tabIndex={isFocus ? 0 : -1}
             aria-selected={Boolean(st)}
-            aria-label={`${formatDayShort(cell.date)}, ${formatMinutes(cell.minute)}${st ? ` — ${STATUS_TEXT[st]}` : ''}`}
+            aria-disabled={isPast || undefined}
+            aria-label={`${formatDayShort(cell.date)}, ${formatMinutes(cell.minute)}${st ? ` — ${STATUS_TEXT[st]}` : ''}${isPast ? ', уже прошло' : ''}${others ? `, другие: ${others}` : ''}`}
             onFocus={() => !isFocus && setFocus({ d, r })}
-          />
+          >
+            {others > 0 && !isPast && (
+              <span className={s.hint} aria-hidden="true">
+                {others}
+              </span>
+            )}
+          </div>
         );
       }}
     />

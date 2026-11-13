@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from '../components/Avatar';
+import { Confetti } from '../components/Confetti';
 import { showToast } from '../components/toastBus';
 import { Button, ButtonLink, ExternalButton } from '../components/ui';
 import {
@@ -7,11 +10,13 @@ import {
   getFinalInfo,
   mapLink,
   participantStatusAtFinal,
+  whenLabel,
 } from '../domain/final';
 import { generateIcs, googleCalendarUrl, safeFileName } from '../domain/ics';
 import type { Meeting, Participant } from '../domain/schemas';
 import { formatDayLong } from '../domain/slots';
 import { useMeetingMutation } from '../hooks/meetings';
+import { useNow } from '../hooks/useNow';
 import { copyText, downloadText } from '../lib/browser';
 import { useMeetingContext } from './meetingContext';
 import p from './Page.module.css';
@@ -24,6 +29,16 @@ export function Final() {
   const restore = useMeetingMutation((repo, final: Meeting['final']) =>
     repo.restoreFinal(meeting.id, final),
   );
+  const nowMs = useNow();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Конфетти — только сразу после фиксации, не при каждом открытии и не после перезагрузки.
+  const [celebrate] = useState(() =>
+    Boolean((location.state as { celebrate?: boolean } | null)?.celebrate),
+  );
+  useEffect(() => {
+    if (celebrate) navigate(location.pathname, { replace: true, state: null });
+  }, [celebrate, navigate, location.pathname]);
 
   if (!info) {
     return (
@@ -67,6 +82,22 @@ export function Final() {
     showToast(ok ? 'Текст скопирован — вставьте его в чат' : 'Не удалось скопировать');
   };
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const share = async () => {
+    const data: ShareData = { title: meeting.title, text: chatText(meeting) };
+    const file = new File([generateIcs(meeting)], `${safeFileName(meeting.title)}.ics`, {
+      type: 'text/calendar',
+    });
+    if (navigator.canShare?.({ files: [file] })) data.files = [file];
+    try {
+      await navigator.share(data);
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') await copy();
+    }
+  };
+
+  const when = whenLabel(meeting, new Date(nowMs));
+
   const cancel = () => {
     const prev = meeting.final;
     unfix.mutate(undefined, {
@@ -81,8 +112,12 @@ export function Final() {
 
   return (
     <div className={p.stack}>
+      {celebrate && <Confetti />}
       <section className={s.hero} aria-label="Итог встречи">
-        <p className={s.kicker}>Встреча зафиксирована</p>
+        <p className={s.kicker}>
+          Встреча зафиксирована
+          {when && <span className={s.when}>{when}</span>}
+        </p>
         <p className={s.date}>{capitalize(formatDayLong(info.date))}</p>
         <p className={s.time}>{info.timeRange}</p>
         {info.place ? (
@@ -96,7 +131,12 @@ export function Final() {
       </section>
 
       <div className={s.actions}>
-        <Button variant="primary" onClick={downloadIcs}>
+        {canShare && (
+          <Button variant="primary" onClick={() => void share()} className={s.wide}>
+            Поделиться с друзьями
+          </Button>
+        )}
+        <Button variant={canShare ? 'secondary' : 'primary'} onClick={downloadIcs}>
           Скачать .ics
         </Button>
         <ExternalButton href={googleCalendarUrl(meeting)}>В Google Календарь</ExternalButton>

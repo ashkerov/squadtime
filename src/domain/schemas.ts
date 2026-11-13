@@ -10,6 +10,9 @@ export const MAX_DAYS = 14;
 export const MAX_PARTICIPANTS = 20;
 export const MAX_NAME_LENGTH = 40;
 export const SLOT_MIN = 30;
+export const MAX_PLACE_NAME_LENGTH = 80;
+export const MAX_ADDRESS_LENGTH = 200;
+export const MAX_URL_LENGTH = 2000;
 
 export const IdSchema = z.string().min(1).max(64);
 export type Id = z.infer<typeof IdSchema>;
@@ -23,7 +26,7 @@ const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ожидается да�
 export const HttpsUrlSchema = z
   .string()
   .trim()
-  .max(2000)
+  .max(MAX_URL_LENGTH)
   .refine((s) => {
     try {
       return new URL(s).protocol === 'https:';
@@ -44,8 +47,8 @@ export type Participant = z.infer<typeof ParticipantSchema>;
 
 export const PlaceSchema = z.object({
   id: IdSchema,
-  name: z.string().trim().min(1).max(80),
-  address: z.string().trim().max(200).optional(),
+  name: z.string().trim().min(1).max(MAX_PLACE_NAME_LENGTH),
+  address: z.string().trim().max(MAX_ADDRESS_LENGTH).optional(),
   mapUrl: HttpsUrlSchema.optional(),
   addedBy: IdSchema,
   votes: z.array(IdSchema),

@@ -4,7 +4,7 @@ import { ImportButton } from '../components/ImportButton';
 import { MeetingMenu } from '../components/MeetingMenu';
 import { TopBar } from '../components/TopBar';
 import { Badge, Button, ButtonLink } from '../components/ui';
-import { getFinalInfo } from '../domain/final';
+import { getFinalInfo, whenLabel } from '../domain/final';
 import { meetingStatus, STATUS_LABEL, type MeetingStatus } from '../domain/meetings';
 import type { Meeting } from '../domain/schemas';
 import { formatDateRange, formatDayShort } from '../domain/slots';
@@ -110,7 +110,21 @@ function MeetingCard({ meeting, now }: { meeting: Meeting; now: Date }) {
             : formatDateRange(meeting.dates)}
         </p>
         {meeting.participants.length > 0 ? (
-          <AvatarStack names={meeting.participants.map((x) => x.name)} />
+          <div className={s.cardFoot}>
+            <AvatarStack names={meeting.participants.map((x) => x.name)} />
+            {status === 'fixed' ? (
+              <span className={s.when}>{whenLabel(meeting, now)}</span>
+            ) : status === 'collecting' ? (
+              <Progress
+                done={
+                  meeting.participants.filter(
+                    (x) => Object.keys(meeting.availability[x.id] ?? {}).length > 0,
+                  ).length
+                }
+                total={meeting.participants.length}
+              />
+            ) : null}
+          </div>
         ) : (
           <p className={s.cardMeta}>Пока без участников</p>
         )}
@@ -119,6 +133,19 @@ function MeetingCard({ meeting, now }: { meeting: Meeting; now: Date }) {
         <MeetingMenu meeting={meeting} />
       </div>
     </article>
+  );
+}
+
+function Progress({ done, total }: { done: number; total: number }) {
+  return (
+    <span className={s.progress} title={`Отметились ${done} из ${total}`}>
+      <span className={s.progressBar} aria-hidden="true">
+        <span style={{ width: `${(done / total) * 100}%` }} />
+      </span>
+      <span className={s.progressText}>
+        {done} из {total}
+      </span>
+    </span>
   );
 }
 

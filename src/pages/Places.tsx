@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ParticipantPicker } from '../components/ParticipantPicker';
 import { Sheet } from '../components/Sheet';
 import { showToast } from '../components/toastBus';
 import { Button, Field } from '../components/ui';
 import { inputClass } from '../components/styles';
 import { mapLink } from '../domain/final';
+import { weightedIndex } from '../domain/random';
 import type { Place } from '../domain/schemas';
 import { useActiveParticipant, useMeetingMutation } from '../hooks/meetings';
 import type { PlaceSnapshot } from '../storage/MeetingRepository';
@@ -28,6 +29,43 @@ export function Places() {
   const places = [...meeting.places].sort((a, b) => b.votes.length - a.votes.length);
   const authorName = (pl: Place) =>
     meeting.participants.find((x) => x.id === pl.addedBy)?.name ?? 'бывший участник';
+
+  // «Пусть решит случай»: подсветка бегает по списку и останавливается на случайном месте.
+  // Шанс места пропорционален лайкам + 1, чтобы и без лайков у всех был шанс.
+  const [spin, setSpin] = useState<{ id: string; done: boolean } | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const roll = () => {
+    if (places.length < 2) return;
+    window.clearTimeout(timer.current);
+    const win = weightedIndex(places.map((x) => x.votes.length + 1));
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const steps = reduce ? 0 : places.length * 3 + win;
+    let i = reduce ? win : 0;
+    const tick = () => {
+      const done = i >= steps;
+      const place = places[i % places.length];
+      setSpin({ id: place.id, done });
+      if (done) {
+        const liked = active ? place.votes.includes(active.id) : true;
+        showToast({
+          message: `🎲 Выпало: ${place.name}`,
+          ...(active && !liked
+            ? {
+                actionLabel: 'Лайкнуть',
+                onAction: () => vote.mutate({ placeId: place.id, participantId: active.id }),
+              }
+            : {}),
+        });
+        return;
+      }
+      i++;
+      const progress = i / steps;
+      timer.current = window.setTimeout(tick, 50 + progress * progress * 320);
+    };
+    tick();
+  };
 
   const onRemove = (pl: Place) =>
     remove.mutate(pl.id, {
@@ -76,7 +114,16 @@ export function Places() {
             const link = mapLink(pl);
             const isFinal = meeting.final?.placeId === pl.id;
             return (
-              <li key={pl.id} className={`${s.place} ${isFinal ? s.final : ''}`}>
+              <li
+                key={pl.id}
+                className={[
+                  s.place,
+                  isFinal && s.final,
+                  spin?.id === pl.id && (spin.done ? s.winner : s.spinning),
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
                 <div className={s.info}>
                   <p className={s.name}>
                     {pl.name}
@@ -128,6 +175,14 @@ export function Places() {
             );
           })}
         </ul>
+      )}
+
+      {places.length >= 2 && (
+        <div className={s.dice}>
+          <Button variant="ghost" onClick={roll} disabled={spin !== null && !spin.done}>
+            🎲 Не можем выбрать — пусть решит случай
+          </Button>
+        </div>
       )}
 
       <Sheet open={adding} onClose={() => setAdding(false)} title="Предложить место">

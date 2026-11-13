@@ -108,7 +108,7 @@
   margin-top: 8px;
 }
 
-.people {
+.peopleList {
   list-style: none;
   margin: 8px 0 0;
   padding: 0;
@@ -128,4 +128,54 @@
     opacity: 0;
     transform: translateY(6px);
   }
+}
+
+.whoCounts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.people {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--page-pad));
+  padding: 2px var(--page-pad);
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-height: 40px;
+  padding: 0 12px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-s);
+  font-weight: 600;
+  transition:
+    opacity var(--dur),
+    background-color var(--dur);
+}
+
+.personOff {
+  opacity: 0.5;
+  text-decoration: line-through;
+  background: transparent;
+}
+
+.linkBtn {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

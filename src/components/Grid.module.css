@@ -235,3 +235,35 @@ button.dayHead:hover {
   backdrop-filter: blur(1px);
   text-align: center;
 }
+
+/* Прошедшее время: отмечать нельзя */
+.past {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.past.markCell {
+  background: repeating-linear-gradient(45deg, var(--surface-2) 0 4px, transparent 4px 8px);
+}
+
+/* Подсказка: сколько других отметили слот */
+.hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-s);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.yes .hint {
+  color: var(--accent-contrast);
+}
+
+.maybe .hint {
+  color: var(--text);
+}

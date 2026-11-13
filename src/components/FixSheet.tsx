@@ -54,7 +54,7 @@ function FixForm({
           {
             onSuccess: () => {
               onDone();
-              navigate(`/m/${meeting.id}/final`);
+              navigate(`/m/${meeting.id}/final`, { state: { celebrate: true } });
             },
           },
         );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { safeFileName } from '../domain/ics';
 import type { Meeting } from '../domain/schemas';
-import { useDeleteMeeting } from '../hooks/meetings';
+import { useDeleteMeeting, useMeetingMutation } from '../hooks/meetings';
 import { useRepository } from '../hooks/repositoryContext';
 import { downloadText } from '../lib/browser';
 import { Menu } from './Menu';
@@ -22,6 +22,7 @@ export function MeetingMenu({
   const navigate = useNavigate();
   const repo = useRepository();
   const del = useDeleteMeeting();
+  const duplicate = useMeetingMutation((r, id: string) => r.duplicate(id));
   const [people, setPeople] = useState(false);
   const [confirm, setConfirm] = useState(false);
 
@@ -39,6 +40,16 @@ export function MeetingMenu({
           { label: 'Редактировать', onSelect: () => navigate(`/m/${meeting.id}/edit`) },
           { label: 'Участники', onSelect: () => setPeople(true) },
           { label: 'Экспорт', onSelect: () => void exportFile() },
+          {
+            label: 'Повторить встречу',
+            onSelect: () =>
+              duplicate.mutate(meeting.id, {
+                onSuccess: (copy) => {
+                  showToast(`Создана копия «${copy.title}» — те же люди и места, новые даты`);
+                  navigate(`/m/${copy.id}`);
+                },
+              }),
+          },
           { label: 'Удалить', onSelect: () => setConfirm(true), danger: true },
         ]}
       />
