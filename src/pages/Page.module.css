@@ -1,0 +1,97 @@
+.page {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--page-pad) 32px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.spread {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+}
+
+.sectionTitle {
+  font-size: var(--fs-s);
+  font-weight: 650;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 8px;
+}
+
+/* Кнопка, закреплённая внизу экрана на телефоне */
+.stickyBottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin: 16px calc(-1 * var(--page-pad)) -32px;
+  padding: 12px var(--page-pad) calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stickyBottom > :last-child {
+  margin-left: auto;
+}
+
+.grow {
+  flex: 1;
+}
+
+.callout {
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0;
+  text-align: center;
+}
+
+.empty p {
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+@media (min-width: 720px) {
+  .stickyBottom {
+    position: static;
+    margin: 16px 0 0;
+    padding: 0;
+    background: none;
+  }
+}

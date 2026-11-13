@@ -1,0 +1,85 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.big {
+  font-size: var(--fs-l);
+  font-weight: 700;
+}
+
+.group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-weight: 650;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.places {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.placeOn {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.place input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.placeName {
+  flex: 1;
+  font-weight: 600;
+}
+
+.votes {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: var(--fs-s);
+}

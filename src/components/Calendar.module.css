@@ -1,0 +1,88 @@
+.root {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-weight: 700;
+}
+
+.nav {
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.nav:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.wd {
+  text-align: center;
+  font-size: var(--fs-s);
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.day {
+  height: var(--tap);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-m);
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--dur);
+}
+
+.day:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.day:disabled {
+  color: var(--text-muted);
+  opacity: 0.45;
+  cursor: default;
+}
+
+.today {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.on,
+.on:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 8px;
+  font-size: var(--fs-s);
+  color: var(--text-muted);
+}

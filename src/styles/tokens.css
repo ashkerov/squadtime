@@ -1,0 +1,63 @@
+/*
+ * Все цвета, шрифты и отступы — здесь. Позже в Telegram эти переменные
+ * можно будет подменить цветами его темы.
+ */
+:root {
+  color-scheme: light dark;
+
+  --bg: #f4f4f7;
+  --surface: #ffffff;
+  --surface-2: #ececf2;
+  --text: #16161d;
+  --text-muted: #5b5b69;
+  --accent: #5546e0;
+  --accent-contrast: #ffffff;
+  --border: #dcdce5;
+  --danger: #c0283a;
+  --success: #1c7c45;
+  --backdrop: rgb(10 10 20 / 0.45);
+  --shadow: 0 1px 2px rgb(20 20 40 / 0.06), 0 6px 24px rgb(20 20 40 / 0.08);
+  --focus: #5546e0;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-s: 13px;
+  --fs-m: 15px;
+  --fs-l: 22px;
+
+  --radius-card: 16px;
+  --radius: 8px;
+  --gap: 12px;
+  --page-pad: 16px;
+  --max-width: 720px;
+  --tap: 44px;
+
+  --cell-w: 56px;
+  --cell-h: 30px;
+
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0e13;
+    --surface: #1a1a22;
+    --surface-2: #25252f;
+    --text: #f0f0f5;
+    --text-muted: #a5a5b4;
+    --accent: #8f85ff;
+    --accent-contrast: #11111a;
+    --border: #30303c;
+    --danger: #ff6b7d;
+    --success: #4cc985;
+    --backdrop: rgb(0 0 0 / 0.6);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 28px rgb(0 0 0 / 0.35);
+    --focus: #b4adff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}

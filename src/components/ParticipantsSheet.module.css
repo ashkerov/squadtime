@@ -1,0 +1,72 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty,
+.legend {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--border);
+}
+
+.name {
+  flex: 1;
+  min-height: var(--tap);
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  text-align: left;
+  border-radius: var(--radius);
+}
+
+.name:hover {
+  background: var(--surface-2);
+}
+
+.renameForm {
+  flex: 1;
+}
+
+.iconBtn {
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.iconBtn:hover {
+  background: var(--surface-2);
+}
+
+.on {
+  color: var(--accent);
+}
+
+.delete:hover {
+  color: var(--danger);
+}

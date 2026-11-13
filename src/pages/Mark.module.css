@@ -1,0 +1,65 @@
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.calloutTitle {
+  margin-bottom: 4px;
+}
+
+.calloutBody {
+  margin-top: 12px;
+}
+
+.swYes,
+.swMaybe {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.swMaybe {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 70%, var(--surface)) 0 3px,
+    color-mix(in srgb, var(--accent) 22%, var(--surface)) 3px 6px
+  );
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 16px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.avatars {
+  display: inline-flex;
+  flex: none;
+}
+
+.count {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  white-space: nowrap;
+}
+
+.avatars > * + * {
+  margin-left: -8px;
+}
